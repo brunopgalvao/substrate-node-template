@@ -43,17 +43,30 @@ pub fn get_endowed_accounts_with_balance() -> Vec<(AccountId, u128)> {
 			get_account_id_from_seed::<sr25519::Public>("Bob"),
 			get_account_id_from_seed::<sr25519::Public>("Charlie"),
 			get_account_id_from_seed::<sr25519::Public>("Dave"),
+			get_account_id_from_seed::<sr25519::Public>("Eve"),
+			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
 			get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
 			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 			get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
 			get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
 		];
 	
-	let mut accounts_with_balance: Vec<(AccountId, u128)> = accounts.iter().cloned().map(|k| (k, 1 << 60)).collect();
+	let accounts_with_balance: Vec<(AccountId, u128)> = accounts.iter().cloned().map(|k| (k, 1 << 60)).collect();
 	let json_data = &include_bytes!("../../seed/balances.json")[..];
-	let mut additional_accounts_with_balance: Vec<(AccountId, u128)> = serde_json::from_slice(json_data).unwrap();
-	accounts_with_balance.append(&mut additional_accounts_with_balance);
-	accounts_with_balance
+	let additional_accounts_with_balance: Vec<(AccountId, u128)> = serde_json::from_slice(json_data).unwrap();
+	
+	let mut accounts = additional_accounts_with_balance.clone();
+	
+	accounts_with_balance.iter().for_each(|tup1| {
+		for tup2 in additional_accounts_with_balance.iter() {
+			if tup1.0 == tup2.0 {
+				return;
+			}
+		}
+		accounts.push(tup1.to_owned());
+	});
+
+	accounts
 }
 
 pub fn development_config() -> Result<ChainSpec, String> {
